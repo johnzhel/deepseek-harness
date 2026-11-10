@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "name": "@deepseek-ai/dsh-client-ui-quick-reply",
-  "description": "Quick-reply chips parsed from an <options> block in the assistant reply",
+  "description": "Quick-reply chips parsed from a fenced options block in the assistant reply",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",

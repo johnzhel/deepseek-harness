@@ -42,8 +42,10 @@ export function QuickReplies({ turn, useChat, inputActions }: QuickRepliesProps)
           className={css.quickOption}
           title={opt}
           onClick={() => {
-            if (inputActions) inputActions.setDraft(opt)
-            else void navigator.clipboard?.writeText(opt).catch(() => {})
+            // insertText appends at the cursor WITHOUT replacing the existing
+            // draft or its reference chips (unlike setDraft, which wipes it).
+            const span = inputActions.captureInsertion()
+            inputActions.insertText(opt, span)
           }}
         >
           {opt}

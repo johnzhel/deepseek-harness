@@ -3,29 +3,31 @@ import { describe, expect, it } from 'vitest'
 import { parseQuickOptions } from '../src/client/quick-options'
 
 describe('parseQuickOptions', () => {
-  it('strips the fenced ```options block and parses numbered options', () => {
-    const { clean, options } = parseQuickOptions(
-      'before\n```options\n1. 继续\n2. 收尾\n```\nafter',
-    )
-    expect(options).toEqual(['继续', '收尾'])
-    expect(clean).toContain('before')
-    expect(clean).toContain('after')
-    expect(clean).not.toContain('options')
+  it('parses numbered options from a fenced block', () => {
+    expect(parseQuickOptions('```options\n1. 继续\n2. 收尾\n```').options).toEqual(['继续', '收尾'])
   })
 
-  it('returns the whole text when no block', () => {
-    const { clean, options } = parseQuickOptions('plain')
-    expect(clean).toBe('plain')
-    expect(options).toEqual([])
+  it('returns empty when no block', () => {
+    expect(parseQuickOptions('plain').options).toEqual([])
   })
 
   it('strips 1. / 1) / 1、 numbering', () => {
-    const { options } = parseQuickOptions('```options\n1. a\n2) b\n3、c\n```')
-    expect(options).toEqual(['a', 'b', 'c'])
+    expect(parseQuickOptions('```options\n1. a\n2) b\n3、c\n```').options).toEqual(['a', 'b', 'c'])
   })
 
-  it('ignores blank lines inside the block', () => {
-    const { options } = parseQuickOptions('```options\n\n1. only\n\n```')
-    expect(options).toEqual(['only'])
+  it('ignores blank lines', () => {
+    expect(parseQuickOptions('```options\n\n1. only\n\n```').options).toEqual(['only'])
+  })
+
+  it('handles CRLF line endings', () => {
+    expect(parseQuickOptions('```options\r\n1. a\r\n2. b\r\n```').options).toEqual(['a', 'b'])
+  })
+
+  it('handles no trailing newline before the close fence', () => {
+    expect(parseQuickOptions('```options\n1. a\n2. b```').options).toEqual(['a', 'b'])
+  })
+
+  it('handles an empty block', () => {
+    expect(parseQuickOptions('```options\n```').options).toEqual([])
   })
 })

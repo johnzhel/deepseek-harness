@@ -6,6 +6,6 @@ export { inject } from './mount.ts'
 export { parseQuickOptions } from './quick-options.ts'
 export { QuickReplies } from './QuickReplies.tsx'
 
-export function apply(ctx: Context): () => void {
-  return mountQuickReplies(ctx)
+export function apply(ctx: Context): void {
+  mountQuickReplies(ctx)
 }

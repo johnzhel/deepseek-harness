@@ -15,7 +15,7 @@ function snapshotWith(text: string) {
   }
 }
 
-function renderWith(text: string, inputActions?: { setDraft: (t: string) => void }) {
+function renderWith(text: string, inputActions?: Record<string, unknown>) {
   const useChat = vi.fn((selector: (s: unknown) => unknown) => selector(snapshotWith(text)))
   return render(<QuickReplies turn={{ turn: 0 } as never} useChat={useChat as never} inputActions={inputActions as never} />)
 }
@@ -31,9 +31,11 @@ it('renders nothing when the reply has no options block', () => {
   expect(view.queryByRole('button')).toBeNull()
 })
 
-it('fills the composer (setDraft) when a chip is clicked', () => {
-  const setDraft = vi.fn()
-  const view = renderWith('```options\n1. 继续\n```', { setDraft })
+it('inserts the option (insertText) without wiping the draft', () => {
+  const captureInsertion = vi.fn(() => ({ start: 0, end: 0 }))
+  const insertText = vi.fn(() => true)
+  const view = renderWith('```options\n1. 继续\n```', { captureInsertion, insertText })
   fireEvent.click(view.getByRole('button', { name: '继续' }))
-  expect(setDraft).toHaveBeenCalledWith('继续')
+  expect(captureInsertion).toHaveBeenCalled()
+  expect(insertText).toHaveBeenCalledWith('继续', expect.anything())
 })
