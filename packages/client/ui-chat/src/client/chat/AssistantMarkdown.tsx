@@ -27,6 +27,40 @@ export function localPathMediaUrl(base: string, value: string): string | undefin
   return fileMediaUrl(base, path)
 }
 
+/** Split an `<options>` block out of the text: clean text + option strings. */
+function parseQuickOptions(text: string): { clean: string; options: string[] } {
+  const match = /<options>([\s\S]*?)<\/options>/u.exec(text)
+  if (match === null || match.index === undefined) return { clean: text, options: [] }
+  const options = (match[1] ?? '')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .map(line => line.replace(/^\d+[.)、]\s*/u, '').trim())
+    .filter(line => line.length > 0)
+  const clean = text.slice(0, match.index) + text.slice(match.index + match[0].length)
+  return { clean, options }
+}
+
+/** Minimal quick-reply chips: click copies the option (send wiring is a later step). */
+function QuickOptions({ options }: { options: string[] }) {
+  if (options.length === 0) return null
+  return (
+    <div className={css.quickOptions} role="group" aria-label="Quick replies">
+      {options.map((opt, i) => (
+        <button
+          key={`${i}-${opt}`}
+          type="button"
+          className={css.quickOption}
+          title={opt}
+          onClick={() => { void navigator.clipboard?.writeText(opt) }}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export interface AssistantMarkdownProps extends
   Pick<PropsRenderSlots<'conversation.chat.reasoning.body' | 'conversation.chat.message.images'>, 'renderSlot'>,
   Pick<ChatNodeOwnerProps, 'loadImage'> {
@@ -81,19 +115,25 @@ export const AssistantMarkdown = memo(function AssistantMarkdown({
     if (groupPart === 'reasoning' && block.kind !== 'reasoning') continue
     if (groupPart === 'response' && block.kind === 'reasoning') continue
     switch (block.kind) {
-      case 'text':
+      case 'text': {
+        const { clean, options } = parseQuickOptions(block.text)
         rendered.push(
-          <MarkdownText
-            key={i}
-            text={block.text}
-            streaming={streaming}
-            labels={labels}
-            fileMentions={mentions}
-            pathImages={pathImages}
-            textInteractionSource={textInteractionSource}
-          />,
+          <Fragment key={i}>
+            {clean.trim() !== '' && (
+              <MarkdownText
+                text={clean}
+                streaming={streaming}
+                labels={labels}
+                fileMentions={mentions}
+                pathImages={pathImages}
+                textInteractionSource={textInteractionSource}
+              />
+            )}
+            <QuickOptions options={options} />
+          </Fragment>,
         )
         break
+      }
       case 'reasoning':
         if (block.text.trim() === '') break
         rendered.push(
