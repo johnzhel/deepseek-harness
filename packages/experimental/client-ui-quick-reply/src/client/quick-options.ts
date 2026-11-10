@@ -8,13 +8,13 @@ export interface QuickOptionsResult {
 }
 
 /**
- * Split an `<options>` block out of the text. Each non-empty line inside the
- * block becomes one option; the block itself is removed from the returned
- * `clean` text. When there is no `<options>` block, `clean` is the whole text
- * and `options` is empty.
+ * Split a fenced ```` ```options ```` block out of the text. Each non-empty line
+ * inside the block becomes one option; the block itself is removed from the
+ * returned `clean` text. When there is no block, `clean` is the whole text and
+ * `options` is empty.
  */
 export function parseQuickOptions(text: string): QuickOptionsResult {
-  const match = /<options>([\s\S]*?)<\/options>/u.exec(text)
+  const match = /```options\s*\n([\s\S]*?)\n?```/u.exec(text)
   if (match === null || match.index === undefined) return { clean: text, options: [] }
   const options = (match[1] ?? '')
     .split('\n')
