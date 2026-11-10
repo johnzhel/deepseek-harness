@@ -2,16 +2,16 @@ import { useMemo } from 'react'
 
 import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ChatNode, ChatSnapshot } from '@deepseek-ai/dsh-client-ui-chat/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { parseQuickOptions } from './quick-options.ts'
 import css from './QuickReplies.module.css'
 
-/** The inject return carries nothing; turn + useChat arrive via the slot runtime props. */
+/** The inject return carries nothing; turn/useChat/inputActions arrive via the slot runtime. */
 export interface QuickRepliesInjected {}
 
-/** Component props: the turn seat + the session-scope `useChat` standard hook. */
-export type QuickRepliesProps = Pick<PropsRuntime<'conversation.chat.turnTail'>, 'turn' | 'useChat'>
+/** Component props: the turn seat + the session-scope standard hook/prop. */
+export type QuickRepliesProps = Pick<PropsRuntime<'conversation.chat.turnTail'>, 'turn' | 'useChat' | 'inputActions'>
   & InjectFace<QuickRepliesInjected>
-  & { send?: (option: string) => void }
 
 /** Collect the assistant text for one turn from the chat snapshot. */
 function turnText(snapshot: ChatSnapshot, turn: number): string {
@@ -29,7 +29,7 @@ function turnText(snapshot: ChatSnapshot, turn: number): string {
   return text
 }
 
-export function QuickReplies({ turn, useChat, send }: QuickRepliesProps) {
+export function QuickReplies({ turn, useChat, inputActions }: QuickRepliesProps) {
   const text = useChat(snapshot => turnText(snapshot, turn.turn))
   const { options } = useMemo(() => parseQuickOptions(text), [text])
   if (options.length === 0) return null
@@ -42,7 +42,7 @@ export function QuickReplies({ turn, useChat, send }: QuickRepliesProps) {
           className={css.quickOption}
           title={opt}
           onClick={() => {
-            if (send) send(opt)
+            if (inputActions) inputActions.setDraft(opt)
             else void navigator.clipboard?.writeText(opt).catch(() => {})
           }}
         >
