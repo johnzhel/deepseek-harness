@@ -7,6 +7,7 @@ import type { MarkdownFileMentions, MarkdownPathImages } from '@deepseek-ai/dsh-
 import type { ChatNodeOwnerProps, ChatViewSlotProps, UseDisclosure, UsePresentation, UseGroupAction } from '../contract/slots.ts'
 import type { AssistantBlock } from '../contract/snapshot.ts'
 import { markdownLabels } from '../markdown-labels.ts'
+import { parseQuickOptions } from './quick-options.ts'
 import { ReasoningRow } from './ReasoningRow.tsx'
 import css from './AssistantMarkdown.module.css'
 
@@ -25,20 +26,6 @@ export function localPathMediaUrl(base: string, value: string): string | undefin
   try { path = decodeURIComponent(value.split(/[?#]/u)[0] ?? '') }
   catch { return undefined } // Malformed URL escapes cannot identify a file.
   return fileMediaUrl(base, path)
-}
-
-/** Split an `<options>` block out of the text: clean text + option strings. */
-function parseQuickOptions(text: string): { clean: string; options: string[] } {
-  const match = /<options>([\s\S]*?)<\/options>/u.exec(text)
-  if (match === null || match.index === undefined) return { clean: text, options: [] }
-  const options = (match[1] ?? '')
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .map(line => line.replace(/^\d+[.)、]\s*/u, '').trim())
-    .filter(line => line.length > 0)
-  const clean = text.slice(0, match.index) + text.slice(match.index + match[0].length)
-  return { clean, options }
 }
 
 /** Minimal quick-reply chips: click copies the option (send wiring is a later step). */
