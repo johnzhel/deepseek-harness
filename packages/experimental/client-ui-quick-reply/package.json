@@ -6,6 +6,10 @@
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
+  "scripts": {
+    "bundle": "tsdown",
+    "watch": "tsdown --watch"
+  },
   "license": "MIT",
   "name": "@deepseek-ai/dsh-client-ui-quick-reply",
   "description": "Quick-reply chips parsed from an <options> block in the assistant reply",
