@@ -13,7 +13,7 @@ export interface QuickRepliesInjected {}
 export type QuickRepliesProps = Pick<PropsRuntime<'conversation.chat.turnTail'>, 'turn' | 'useChat' | 'inputActions'>
   & InjectFace<QuickRepliesInjected>
 
-/** Collect the assistant text for one turn from the chat snapshot. */
+/** Collect the CLOSING assistant text (last assistant-step) for one turn. */
 function turnText(snapshot: ChatSnapshot, turn: number): string {
   const keys = snapshot.locations.getTurn(turn)
   let text = ''
@@ -21,7 +21,8 @@ function turnText(snapshot: ChatSnapshot, turn: number): string {
     const node = snapshot.nodes.get(key)
     if (node?.kind === 'assistant-step') {
       const step = node as ChatNode<'assistant-step'>
-      text += step.data.blocks
+      // Assign (not +=): keep only the closing assistant-step, not prior process steps.
+      text = step.data.blocks
         .flatMap((b) => (b.kind === 'text' ? [b.text] : []))
         .join('')
     }
@@ -45,7 +46,11 @@ export function QuickReplies({ turn, useChat, inputActions }: QuickRepliesProps)
             // insertText appends at the cursor WITHOUT replacing the existing
             // draft or its reference chips (unlike setDraft, which wipes it).
             const span = inputActions.captureInsertion()
-            inputActions.insertText(opt, span)
+            const inserted = inputActions.insertText(opt, span)
+            if (!inserted) {
+              // Draft changed / submission locked since render: fall back to copy.
+              void navigator.clipboard?.writeText(opt).catch(() => {})
+            }
           }}
         >
           {opt}

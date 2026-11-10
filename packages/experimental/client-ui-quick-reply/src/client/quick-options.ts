@@ -11,7 +11,7 @@ export interface QuickOptionsResult {
  * is empty.
  */
 export function parseQuickOptions(text: string): QuickOptionsResult {
-  const match = /```options\s*\n([\s\S]*?)\n?```/u.exec(text)
+  const match = /^```options\r?\n([\s\S]*?)\r?\n?```/m.exec(text)
   if (match === null) return { options: [] }
   const options = (match[1] ?? '')
     .split('\n')
